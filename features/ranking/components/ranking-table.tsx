@@ -1,24 +1,63 @@
-import { Competition, CompetitionDriver } from "@/features/competitions/types";
-import { RankingRow } from "./ranking-row";
+import dayjs from "dayjs";
+import {
+  Competition,
+  CompetitionDriver,
+  CompetitionTeam,
+  EventGroup,
+} from "@/features/competitions/types";
 import { RankingItem } from "../types";
 import { formatTimestampDate } from "@/lib/format";
+import { TimeCard } from "@/components/time-card";
 
-export interface RankingProps {
-  competition?: Competition;
-  ranking?: RankingItem[];
-  drivers?: CompetitionDriver[];
-  driversTeamMap?: any;
+export interface RankingTableProps {
+  competition: Competition;
+  ranking: RankingItem[];
 }
 
-export function RankingTable({
-  competition,
-  ranking,
-  drivers,
-  driversTeamMap,
-}: RankingProps) {
+interface RankingRowProps {
+  rankingItem: RankingItem;
+  driver: CompetitionDriver;
+  team: CompetitionTeam;
+  eventGroups: EventGroup[];
+  overallBestTimesPerEventGroup: Record<number, number>;
+}
+
+export function RankingTable({ competition, ranking }: RankingTableProps) {
   if (!competition || !ranking || ranking.length === 0) {
     return <div>No ranking available</div>;
   }
+
+  const driversMap: Record<number, CompetitionDriver> = {};
+  const driversTeamsMap: Record<number, CompetitionTeam> = {};
+  const overallBestTimesPerEventGroup: Record<number, number> = {};
+
+  competition.teams.forEach((team) => {
+    team.crews.forEach((crew) => {
+      crew.drivers.forEach((driver) => {
+        if (!driver.iRacingId) {
+          return;
+        }
+
+        driversMap[driver.iRacingId] = driver;
+        driversTeamsMap[driver.iRacingId] = team;
+      });
+    });
+  });
+
+  ranking.forEach((driverRanking) => {
+    Object.entries(driverRanking.results).forEach(([eventGroupId, results]) => {
+      Object.values(results).forEach((result) => {
+        const typedEventGroupId = eventGroupId as unknown as number;
+        if (
+          result > 0 &&
+          (!overallBestTimesPerEventGroup[typedEventGroupId] ||
+            result < overallBestTimesPerEventGroup[typedEventGroupId])
+        ) {
+          overallBestTimesPerEventGroup[typedEventGroupId] = result;
+        }
+      });
+    });
+  });
 
   return (
     <table className="min-w-full table-auto text-left text-sm text-gray-400 rtl:text-right">
@@ -61,12 +100,83 @@ export function RankingTable({
           <RankingRow
             key={i}
             rankingItem={rankingItem}
-            driver={null} // TODO
-            team={null} // TODO
+            driver={driversMap[rankingItem.custId]}
+            team={driversTeamsMap[rankingItem.custId]}
             eventGroups={competition.eventGroups}
+            overallBestTimesPerEventGroup={overallBestTimesPerEventGroup}
           />
         ))}
       </tbody>
     </table>
+  );
+}
+
+function RankingRow({
+  rankingItem,
+  driver,
+  team,
+  eventGroups,
+  overallBestTimesPerEventGroup,
+}: RankingRowProps) {
+  if (!rankingItem) {
+    return null;
+  }
+
+  return (
+    <tr className="border-b border-gray-700 bg-gray-800">
+      <td className="px-6 py-4 text-center">P{rankingItem.position}</td>
+
+      <td className="px-6 py-4">
+        <div className="flex items-center space-x-2">
+          {driver?.firstName} {driver?.lastName}
+        </div>
+      </td>
+
+      <td className="px-6 py-4">
+        <div className="flex items-center space-x-2">
+          <div className="flex flex-row">
+            {team?.pictureUrl && (
+              <img
+                src={team.pictureUrl}
+                alt={team.name}
+                className="mr-4 h-6 w-6 object-cover"
+              />
+            )}
+            <span>{team?.name}</span>
+          </div>
+        </div>
+      </td>
+
+      <td className="px-2 py-1">
+        <TimeCard time={rankingItem.sum} />
+      </td>
+
+      {eventGroups &&
+        eventGroups.map((event, eventIndex) => {
+          const eventResults = rankingItem.results[eventIndex];
+
+          return event.sessions.map((session, i) => {
+            const sessionResult =
+              eventResults?.[
+                dayjs(session.fromTime.toDate()).format("YYYY-MM-DD")
+              ];
+            const personalBest = Math.min(
+              ...Object.values(eventResults || {}).filter((v) => v > 0)
+            );
+
+            return (
+              <td key={i} className="px-2 py-1">
+                <TimeCard
+                  time={sessionResult}
+                  isPersonalBest={sessionResult === personalBest}
+                  isOverallBest={
+                    sessionResult === overallBestTimesPerEventGroup[eventIndex]
+                  }
+                />
+              </td>
+            );
+          });
+        })}
+    </tr>
   );
 }

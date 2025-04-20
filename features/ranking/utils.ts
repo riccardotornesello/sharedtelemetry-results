@@ -17,7 +17,7 @@ export async function getCompetitionBestResults(
   const bestResults: Record<
     number,
     Record<number, Record<string, number>>
-  > = {}; //  Customer ID, Group, Date, average ms
+  > = {}; //  Customer ID, Group Index, Group Session Date, average ms
 
   for (
     let eventGroupIndex = 0;
@@ -33,7 +33,7 @@ export async function getCompetitionBestResults(
         trackId: eventGroup.iRacingTrackId || -1,
         fromTime: eventSession.fromTime,
         toTime: eventSession.toTime,
-        simsessionName: "QUALIFY",
+        simsessionName: "QUALIFY", // TODO: variable
       });
 
       for (const custId in sessionResults) {

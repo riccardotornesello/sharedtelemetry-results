@@ -8,12 +8,16 @@ export default async function CompetitionResultsPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const competition = await getCompetitionRanking((await params).slug);
+  const competitionRanking = await getCompetitionRanking((await params).slug);
+
+  if (!competitionRanking) {
+    return <div>No ranking available</div>;
+  }
 
   return (
     <RankingTable
-      ranking={competition?.driversRanking}
-      competition={competition?.competition}
+      ranking={competitionRanking.driversRanking}
+      competition={competitionRanking.competition}
     />
   );
 }
