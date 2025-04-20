@@ -1,4 +1,5 @@
 import { formatMilliseconds } from "@/lib/format";
+import clsx from "clsx";
 
 export interface TimeCardProps {
   time?: number;
@@ -13,11 +14,13 @@ export function TimeCard({
 }: TimeCardProps) {
   return (
     <div
-      className="h-full w-full rounded p-3 text-center font-mono text-gray-300"
-      class:bg-purple-600={isOverallBest}
-      class:text-purple-200={isOverallBest}
-      class:bg-green-600={isPersonalBest && !isOverallBest}
-      class:text-green-200={isPersonalBest && !isOverallBest}
+      className={clsx(
+        "h-full w-full rounded p-3 text-center font-mono text-gray-300",
+        {
+          "bg-purple-600 text-purple-200": isOverallBest,
+          "bg-green-600 text-green-200": isPersonalBest && !isOverallBest,
+        }
+      )}
     >
       {time ? formatMilliseconds(time) : "-"}
     </div>
