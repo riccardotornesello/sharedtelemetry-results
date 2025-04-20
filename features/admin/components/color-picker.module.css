@@ -1,0 +1,19 @@
+.colorPicker .colorPickerRow {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 16px;
+}
+
+.colorPicker .colorPickerRow .field-type {
+  width: 100%;
+}
+
+.colorPicker .colorPickerRow input[type="color"] {
+  width: 40px;
+  height: 40px;
+}
+
+.colorPicker .colorPickerRow input[type="text"] {
+  width: 100%;
+}

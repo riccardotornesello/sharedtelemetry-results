@@ -1,7 +1,7 @@
 "use server";
 
 import { getCompetitionBySlug } from "../competitions/queries";
-import { Competition } from "../competitions/types";
+import { Competition } from "@/payload-types";
 import { getIRacingGroupSessions } from "../iracing/queries";
 import dayjs from "dayjs";
 import { RankingItem } from "./types";
@@ -13,24 +13,30 @@ import { RankingItem } from "./types";
  */
 export async function getCompetitionBestResults(
   competition: Competition
-): Promise<Record<number, Record<number, Record<string, number>>>> {
+): Promise<Record<number, Record<string, Record<string, number>>>> {
   const bestResults: Record<
     number,
-    Record<number, Record<string, number>>
-  > = {}; //  Customer ID, Group Index, Group Session Date, average ms
+    Record<string, Record<string, number>>
+  > = {}; //  Customer ID, Group ID, Group Session ID, average ms
 
-  for (
-    let eventGroupIndex = 0;
-    eventGroupIndex < competition.eventGroups.length;
-    eventGroupIndex++
-  ) {
-    const eventGroup = competition.eventGroups[eventGroupIndex];
+  if (!competition.eventGroups) {
+    return bestResults;
+  }
+
+  for (const eventGroup of competition.eventGroups) {
+    if (!eventGroup.sessions) {
+      continue;
+    }
+
+    if (!eventGroup.id) {
+      continue;
+    }
 
     for (const eventSession of eventGroup.sessions) {
       const sessionResults = await getIRacingGroupSessions({
         leagueId: competition.leagueId,
         seasonId: competition.seasonId,
-        trackId: eventGroup.iRacingTrackId || -1,
+        trackId: eventGroup.iRacingTrackId,
         fromTime: eventSession.fromTime,
         toTime: eventSession.toTime,
         simsessionName: "QUALIFY", // TODO: variable
@@ -41,15 +47,15 @@ export async function getCompetitionBestResults(
           bestResults[custId] = {};
         }
 
-        if (!bestResults[custId][eventGroupIndex]) {
-          bestResults[custId][eventGroupIndex] = {};
+        if (!bestResults[custId][eventGroup.id]) {
+          bestResults[custId][eventGroup.id] = {};
         }
 
-        const dateString = dayjs(eventSession.fromTime.toMillis()).format(
-          "YYYY-MM-DD"
-        );
+        if (!eventSession.id) {
+          continue;
+        }
 
-        bestResults[custId][eventGroupIndex][dateString] =
+        bestResults[custId][eventGroup.id][eventSession.id] =
           sessionResults[custId];
       }
     }
@@ -60,15 +66,18 @@ export async function getCompetitionBestResults(
 
 export async function getCompetitionRanking(slug: string) {
   const competition = await getCompetitionBySlug(slug);
+
   if (!competition) {
     return null;
   }
 
   const bestResults = await getCompetitionBestResults(competition);
 
-  const driverIds = competition.teams
+  const driverIds = (competition.teams || [])
     .map((team) =>
-      team.crews.map((crew) => crew.drivers.map((driver) => driver.iRacingId))
+      (team.crews || []).map((crew) =>
+        (crew.drivers || []).map((driver) => driver.iRacingId)
+      )
     )
     .flat(3)
     .filter((v) => v !== undefined && v !== null);
@@ -79,13 +88,10 @@ export async function getCompetitionRanking(slug: string) {
     let totalMs = 0;
     let isValid = true;
 
-    for (
-      let eventGroupIndex = 0;
-      eventGroupIndex < competition.eventGroups.length;
-      eventGroupIndex++
-    ) {
+    (competition.eventGroups || []).forEach((eventGroup) => {
       const eventGroupResults: Record<string, number> | undefined =
-        bestResults[custId]?.[eventGroupIndex];
+        bestResults[custId]?.[eventGroup.id || "0"];
+
       if (!eventGroupResults) {
         isValid = false;
       } else {
@@ -94,7 +100,7 @@ export async function getCompetitionRanking(slug: string) {
         );
         totalMs += bestGroupResult;
       }
-    }
+    });
 
     driversRanking.push({
       position: 0,

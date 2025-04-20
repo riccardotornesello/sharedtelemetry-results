@@ -1,5 +1,6 @@
-import { Competition } from "./types";
-import { db } from "@/lib/firebase";
+import { Competition } from "@/payload-types";
+import { getPayload } from "payload";
+import config from "@payload-config";
 
 export async function getCompetitionBySlug(
   slug: string | null | undefined
@@ -8,19 +9,20 @@ export async function getCompetitionBySlug(
     return null;
   }
 
-  const competitionRef = db
-    .collection("results_competitions")
-    .where("slug", "==", slug);
-  const competitionSnapshot = await competitionRef.get();
+  const payload = await getPayload({ config });
 
-  if (competitionSnapshot.empty) {
-    return null;
-  }
+  const result = await payload.find({
+    collection: "competitions",
+    depth: 3,
+    page: 1,
+    limit: 1,
+    pagination: false,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+  });
 
-  const competitionData = competitionSnapshot.docs[0].data();
-  const competition = {
-    id: competitionSnapshot.docs[0].id,
-    ...competitionData,
-  };
-  return competition as Competition;
+  return result.docs[0];
 }

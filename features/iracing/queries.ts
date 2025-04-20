@@ -13,19 +13,33 @@ export async function getIRacingGroupSessions({
 }: {
   leagueId: number;
   seasonId: number;
-  trackId: number;
-  fromTime: Timestamp;
-  toTime: Timestamp;
+  trackId?: number | null;
+  fromTime: string;
+  toTime: string;
   simsessionName: string;
-}) {
-  const sessions = await db
+}): Promise<Record<number, number>> {
+  let sessionsQuery = db
     .collection("iracing_sessions")
-    .where("launchAt", ">=", fromTime)
-    .where("launchAt", "<", toTime)
-    .where("trackId", "==", trackId)
+    .where("launchAt", ">=", Timestamp.fromDate(new Date(fromTime)))
+    .where("launchAt", "<=", Timestamp.fromDate(new Date(toTime)))
     .where("leagueId", "==", leagueId)
-    .where("seasonId", "==", seasonId)
-    .get();
+    .where("seasonId", "==", seasonId);
+
+  if (trackId) {
+    sessionsQuery = sessionsQuery.where("trackId", "==", trackId);
+  }
+
+  const sessions = await sessionsQuery.get();
+
+  console.log(
+    sessions.size,
+    "sessions found",
+    leagueId,
+    seasonId,
+    trackId,
+    fromTime,
+    toTime
+  );
 
   const groupDriverResults: Record<number, number> = {};
 
