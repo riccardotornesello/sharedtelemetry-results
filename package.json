@@ -11,8 +11,8 @@
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload"
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "^3.35.1",
     "@payloadcms/db-sqlite": "^3.35.1",
-    "@payloadcms/db-vercel-postgres": "^3.35.1",
     "@payloadcms/next": "^3.35.1",
     "@payloadcms/richtext-lexical": "^3.35.1",
     "clsx": "^2.1.1",

@@ -2,7 +2,7 @@ import sharp from "sharp";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { sqliteAdapter } from "@payloadcms/db-sqlite";
 import { buildConfig, type Field, type CollectionConfig } from "payload";
-import { vercelPostgresAdapter } from "@payloadcms/db-vercel-postgres";
+import { postgresAdapter } from "@payloadcms/db-postgres";
 
 const Drivers: Field = {
   name: "drivers",
@@ -169,7 +169,7 @@ const CompetitionCollection: CollectionConfig = {
 };
 
 function getDbAdapter() {
-  const databaseUrL = process.env.PAYLOAD_DATABASE_URL;
+  const databaseUrL = process.env.POSTGRES_URL;
 
   if (!databaseUrL) {
     // For local development, use SQLite
@@ -180,7 +180,7 @@ function getDbAdapter() {
       },
     });
   } else {
-    return vercelPostgresAdapter({
+    return postgresAdapter({
       pool: {
         connectionString: databaseUrL,
       },
