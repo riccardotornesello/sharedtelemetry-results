@@ -1,6 +1,8 @@
+"use server";
+
 import Redis from "ioredis";
 
-export function getRedisClient() {
+export async function getRedisClient() {
   const redisUrl = process.env.REDIS_URL;
 
   if (!redisUrl) {
@@ -12,9 +14,9 @@ export function getRedisClient() {
   }
 }
 
-const redisClient = getRedisClient();
+const redisClient = await getRedisClient();
 
-export function getCache(key: string) {
+export async function getCache(key: string) {
   if (!redisClient) {
     return null;
   }
@@ -22,7 +24,11 @@ export function getCache(key: string) {
   return redisClient.get(key);
 }
 
-export function setCache(key: string, value: string, expiration?: number) {
+export async function setCache(
+  key: string,
+  value: string,
+  expiration?: number
+) {
   if (!redisClient) {
     return null;
   }
@@ -32,4 +38,24 @@ export function setCache(key: string, value: string, expiration?: number) {
   } else {
     return redisClient.set(key, value);
   }
+}
+
+export async function deleteCache(key: string) {
+  if (!redisClient) {
+    return null;
+  }
+  return redisClient.del(key);
+}
+
+export async function deleteCacheByPrefix(prefix: string) {
+  if (!redisClient) {
+    return null;
+  }
+
+  return redisClient.keys(`${prefix}*`).then((keys) => {
+    if (keys.length > 0) {
+      return redisClient.del(keys);
+    }
+    return null;
+  });
 }

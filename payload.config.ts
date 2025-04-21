@@ -3,6 +3,7 @@ import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { sqliteAdapter } from "@payloadcms/db-sqlite";
 import { buildConfig, type Field, type CollectionConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { deleteCacheByPrefix } from "./lib/redis";
 
 const Drivers: Field = {
   name: "drivers",
@@ -206,6 +207,18 @@ const CompetitionCollection: CollectionConfig = {
     Teams,
     EventGroups,
   ],
+  admin: {
+    components: {
+      beforeListTable: ["@/features/admin/components/cache-clear-button"],
+    },
+  },
+  hooks: {
+    afterChange: [
+      async () => {
+        await deleteCacheByPrefix("competitionRanking:");
+      },
+    ],
+  },
 };
 
 function getDbAdapter() {
