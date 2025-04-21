@@ -3,68 +3,17 @@
 import { getCompetitionBySlug } from "../competitions/queries";
 import { Competition } from "@/payload-types";
 import { getIRacingGroupSessions } from "../iracing/queries";
-import dayjs from "dayjs";
 import { RankingItem } from "./types";
-
-/**
- * Get the best result for each driver in each event group of a specific competition.
- * @param competition
- * @returns
- */
-export async function getCompetitionBestResults(
-  competition: Competition
-): Promise<Record<number, Record<string, Record<string, number>>>> {
-  const bestResults: Record<
-    number,
-    Record<string, Record<string, number>>
-  > = {}; //  Customer ID, Group ID, Group Session ID, average ms
-
-  if (!competition.eventGroups) {
-    return bestResults;
-  }
-
-  for (const eventGroup of competition.eventGroups) {
-    if (!eventGroup.sessions) {
-      continue;
-    }
-
-    if (!eventGroup.id) {
-      continue;
-    }
-
-    for (const eventSession of eventGroup.sessions) {
-      const sessionResults = await getIRacingGroupSessions({
-        leagueId: competition.leagueId,
-        seasonId: competition.seasonId,
-        trackId: eventGroup.iRacingTrackId,
-        fromTime: eventSession.fromTime,
-        toTime: eventSession.toTime,
-        simsessionName: "QUALIFY", // TODO: variable
-      });
-
-      for (const custId in sessionResults) {
-        if (!bestResults[custId]) {
-          bestResults[custId] = {};
-        }
-
-        if (!bestResults[custId][eventGroup.id]) {
-          bestResults[custId][eventGroup.id] = {};
-        }
-
-        if (!eventSession.id) {
-          continue;
-        }
-
-        bestResults[custId][eventGroup.id][eventSession.id] =
-          sessionResults[custId];
-      }
-    }
-  }
-
-  return bestResults;
-}
+import { getCache, setCache } from "@/lib/redis";
 
 export async function getCompetitionRanking(slug: string) {
+  const cacheKey = `competitionRanking:${slug}`;
+  const cache = await getCache(cacheKey);
+  if (cache) {
+    const parsedCache = JSON.parse(cache);
+    return parsedCache;
+  }
+
   const competition = await getCompetitionBySlug(slug);
 
   if (!competition) {
@@ -133,5 +82,67 @@ export async function getCompetitionRanking(slug: string) {
     item.position = index + 1;
   });
 
-  return { driversRanking, competition };
+  const output = { driversRanking, competition };
+
+  // Cache the output
+  const cacheExpiration = 10 * 60; // 10 minutes
+  await setCache(cacheKey, JSON.stringify(output), cacheExpiration);
+
+  return output;
+}
+
+/**
+ * Get the best result for each driver in each event group of a specific competition.
+ */
+export async function getCompetitionBestResults(
+  competition: Competition
+): Promise<Record<number, Record<string, Record<string, number>>>> {
+  const bestResults: Record<
+    number,
+    Record<string, Record<string, number>>
+  > = {}; //  Customer ID, Group ID, Group Session ID, average ms
+
+  if (!competition.eventGroups) {
+    return bestResults;
+  }
+
+  for (const eventGroup of competition.eventGroups) {
+    if (!eventGroup.sessions) {
+      continue;
+    }
+
+    if (!eventGroup.id) {
+      continue;
+    }
+
+    for (const eventSession of eventGroup.sessions) {
+      const sessionResults = await getIRacingGroupSessions({
+        leagueId: competition.leagueId,
+        seasonId: competition.seasonId,
+        trackId: eventGroup.iRacingTrackId,
+        fromTime: eventSession.fromTime,
+        toTime: eventSession.toTime,
+        simsessionName: "QUALIFY", // TODO: variable
+      });
+
+      for (const custId in sessionResults) {
+        if (!bestResults[custId]) {
+          bestResults[custId] = {};
+        }
+
+        if (!bestResults[custId][eventGroup.id]) {
+          bestResults[custId][eventGroup.id] = {};
+        }
+
+        if (!eventSession.id) {
+          continue;
+        }
+
+        bestResults[custId][eventGroup.id][eventSession.id] =
+          sessionResults[custId];
+      }
+    }
+  }
+
+  return bestResults;
 }

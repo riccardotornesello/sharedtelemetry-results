@@ -31,16 +31,6 @@ export async function getIRacingGroupSessions({
 
   const sessions = await sessionsQuery.get();
 
-  console.log(
-    sessions.size,
-    "sessions found",
-    leagueId,
-    seasonId,
-    trackId,
-    fromTime,
-    toTime
-  );
-
   const groupDriverResults: Record<number, number> = {};
 
   sessions.forEach((s) => {
