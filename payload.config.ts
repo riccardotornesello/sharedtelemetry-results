@@ -9,19 +9,24 @@ const Drivers: Field = {
   type: "array",
   fields: [
     {
-      name: "firstName",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "lastName",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "iRacingId",
-      type: "number",
-      required: true,
+      type: "row",
+      fields: [
+        {
+          name: "firstName",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "lastName",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "iRacingId",
+          type: "number",
+          required: true,
+        },
+      ],
     },
   ],
 };
@@ -31,19 +36,24 @@ const Crews: Field = {
   type: "array",
   fields: [
     {
-      name: "name",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "class",
-      type: "text",
-      required: false,
-    },
-    {
-      name: "iRacingCarId",
-      type: "number",
-      required: true,
+      type: "row",
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "class",
+          type: "text",
+          required: false,
+        },
+        {
+          name: "iRacingCarId",
+          type: "number",
+          required: true,
+        },
+      ],
     },
     Drivers,
   ],
@@ -54,14 +64,19 @@ const Teams: Field = {
   type: "array",
   fields: [
     {
-      name: "name",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "pictureUrl",
-      type: "text",
-      required: false,
+      type: "row",
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "pictureUrl",
+          type: "text",
+          required: false,
+        },
+      ],
     },
     Crews,
   ],
@@ -72,20 +87,25 @@ const Classes: Field = {
   type: "array",
   fields: [
     {
-      name: "name",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "color",
-      type: "text",
-      required: true,
-      defaultValue: "",
-      admin: {
-        components: {
-          Field: "@/features/admin/components/color-picker",
+      type: "row",
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
         },
-      },
+        {
+          name: "color",
+          type: "text",
+          required: true,
+          defaultValue: "",
+          admin: {
+            components: {
+              Field: "@/features/admin/components/color-picker",
+            },
+          },
+        },
+      ],
     },
   ],
 };
@@ -95,24 +115,29 @@ const EventSesions: Field = {
   type: "array",
   fields: [
     {
-      name: "fromTime",
-      type: "date",
-      required: true,
-      admin: {
-        date: {
-          pickerAppearance: "dayAndTime",
+      type: "row",
+      fields: [
+        {
+          name: "fromTime",
+          type: "date",
+          required: true,
+          admin: {
+            date: {
+              pickerAppearance: "dayAndTime",
+            },
+          },
         },
-      },
-    },
-    {
-      name: "toTime",
-      type: "date",
-      required: true,
-      admin: {
-        date: {
-          pickerAppearance: "dayAndTime",
+        {
+          name: "toTime",
+          type: "date",
+          required: true,
+          admin: {
+            date: {
+              pickerAppearance: "dayAndTime",
+            },
+          },
         },
-      },
+      ],
     },
   ],
 };
@@ -122,13 +147,18 @@ const EventGroups: Field = {
   type: "array",
   fields: [
     {
-      name: "name",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "iRacingTrackId",
-      type: "number",
+      type: "row",
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "iRacingTrackId",
+          type: "number",
+        },
+      ],
     },
     EventSesions,
   ],
@@ -138,24 +168,34 @@ const CompetitionCollection: CollectionConfig = {
   slug: "competitions",
   fields: [
     {
-      name: "leagueId",
-      type: "number",
-      required: true,
+      type: "row",
+      fields: [
+        {
+          name: "leagueId",
+          type: "number",
+          required: true,
+        },
+        {
+          name: "seasonId",
+          type: "number",
+          required: true,
+        },
+      ],
     },
     {
-      name: "seasonId",
-      type: "number",
-      required: true,
-    },
-    {
-      name: "name",
-      type: "text",
-      required: true,
-    },
-    {
-      name: "slug",
-      type: "text",
-      required: true,
+      type: "row",
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "slug",
+          type: "text",
+          required: true,
+        },
+      ],
     },
     {
       name: "crewDriversCount",
