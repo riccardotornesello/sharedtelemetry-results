@@ -36,7 +36,9 @@ const DownloadCsvButton: UIFieldClientComponent = (props) => {
         link.click();
 
         // Clean up and remove the link
-        link.parentNode.removeChild(link);
+        if (link.parentNode) {
+          link.parentNode.removeChild(link);
+        }
       });
   };
 
