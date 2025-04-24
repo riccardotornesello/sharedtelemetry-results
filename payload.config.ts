@@ -274,6 +274,14 @@ const CompetitionCollection: CollectionConfig = {
     components: {
       beforeListTable: ["@/features/admin/components/cache-clear-button"],
     },
+    defaultColumns: [
+      "name",
+      "slug",
+      "leagueId",
+      "seasonId",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   hooks: {
     afterChange: [
