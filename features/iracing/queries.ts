@@ -9,15 +9,13 @@ export async function getIRacingGroupSessions({
   trackId,
   fromTime,
   toTime,
-  simsessionName,
 }: {
   leagueId: number;
   seasonId: number;
   trackId?: number | null;
   fromTime: string;
   toTime: string;
-  simsessionName: string;
-}): Promise<Record<number, number>> {
+}) {
   let sessionsQuery = db
     .collection("iracing_sessions")
     .where("launchAt", ">=", Timestamp.fromDate(new Date(fromTime)))
@@ -30,6 +28,32 @@ export async function getIRacingGroupSessions({
   }
 
   const sessions = await sessionsQuery.get();
+
+  return sessions;
+}
+
+export async function getIRacingBestGroupSessions({
+  leagueId,
+  seasonId,
+  trackId,
+  fromTime,
+  toTime,
+  simsessionName,
+}: {
+  leagueId: number;
+  seasonId: number;
+  trackId?: number | null;
+  fromTime: string;
+  toTime: string;
+  simsessionName: string;
+}): Promise<Record<number, number>> {
+  const sessions = await getIRacingGroupSessions({
+    leagueId,
+    seasonId,
+    trackId,
+    fromTime,
+    toTime,
+  });
 
   const groupDriverResults: Record<number, number> = {};
 

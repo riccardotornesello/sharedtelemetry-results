@@ -1,9 +1,46 @@
 import sharp from "sharp";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { sqliteAdapter } from "@payloadcms/db-sqlite";
-import { buildConfig, type Field, type CollectionConfig } from "payload";
+import {
+  buildConfig,
+  type Field,
+  type CollectionConfig,
+  Endpoint,
+} from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { deleteCacheByPrefix } from "./lib/redis";
+import { getCompetitionSessionsCsv } from "./features/ranking/utils";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+
+dayjs.extend(duration);
+
+export const downloadEndpoint: Endpoint = {
+  path: "/:slug/csv",
+  method: "get",
+  async handler(req) {
+    if (!req.user) {
+      return Response.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const slug = req?.routeParams?.slug as string | undefined;
+    if (!slug) {
+      return Response.json({ message: "Slug is required" }, { status: 400 });
+    }
+
+    const csv = await getCompetitionSessionsCsv(slug);
+    if (!csv) {
+      return Response.json({ message: "No data available" }, { status: 404 });
+    }
+
+    return new Response(csv.toString(), {
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment; filename="competition-${slug}.csv"`,
+      },
+    });
+  },
+};
 
 const Drivers: Field = {
   name: "drivers",
@@ -206,6 +243,32 @@ const CompetitionCollection: CollectionConfig = {
     Classes,
     Teams,
     EventGroups,
+    {
+      name: "csv",
+      type: "ui",
+      admin: {
+        position: "sidebar",
+        components: {
+          Field: "@/features/admin/components/download-csv-button",
+        },
+        condition: (data) => {
+          return data && data.slug;
+        },
+      },
+    },
+    {
+      name: "visit",
+      type: "ui",
+      admin: {
+        position: "sidebar",
+        components: {
+          Field: "@/features/admin/components/visit-competition-results-button",
+        },
+        condition: (data) => {
+          return data && data.slug;
+        },
+      },
+    },
   ],
   admin: {
     components: {
@@ -247,4 +310,5 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || "",
   db: getDbAdapter(),
   sharp,
+  endpoints: [downloadEndpoint],
 });

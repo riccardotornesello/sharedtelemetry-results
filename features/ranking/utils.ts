@@ -2,9 +2,17 @@
 
 import { getCompetitionBySlug } from "../competitions/queries";
 import { Competition } from "@/payload-types";
-import { getIRacingGroupSessions } from "../iracing/queries";
+import {
+  getIRacingBestGroupSessions,
+  getIRacingGroupSessions,
+} from "../iracing/queries";
 import { RankingItem } from "./types";
 import { getCache, setCache } from "@/lib/redis";
+import dayjs from "dayjs";
+import { IRacingSessionDocument } from "../iracing/types";
+import { extractAverageLapTime } from "../iracing/utils";
+import { stringify } from "csv-stringify/sync";
+import { formatMilliseconds } from "@/lib/format";
 
 export async function getCompetitionRanking(slug: string) {
   const cacheKey = `competitionRanking:${slug}`;
@@ -116,7 +124,7 @@ export async function getCompetitionBestResults(
     }
 
     for (const eventSession of eventGroup.sessions) {
-      const sessionResults = await getIRacingGroupSessions({
+      const sessionResults = await getIRacingBestGroupSessions({
         leagueId: competition.leagueId,
         seasonId: competition.seasonId,
         trackId: eventGroup.iRacingTrackId,
@@ -145,4 +153,104 @@ export async function getCompetitionBestResults(
   }
 
   return bestResults;
+}
+
+export async function getCompetitionSessionsCsv(slug: string) {
+  const competition = await getCompetitionBySlug(slug);
+
+  if (!competition || !competition.eventGroups) {
+    return null;
+  }
+
+  const drivers = (competition.teams || [])
+    .map((team) =>
+      (team.crews || []).map((crew) =>
+        (crew.drivers || []).map((driver) => driver)
+      )
+    )
+    .flat(3)
+    .filter((v) => v !== undefined && v !== null);
+  const driverIds = drivers.map((driver) => driver.iRacingId);
+
+  const driverResults: Record<
+    number,
+    Record<string, number | null>
+  > = drivers.reduce(
+    (acc, driver) => {
+      acc[driver.iRacingId] = {};
+      return acc;
+    },
+    {} as Record<number, Record<string, number>>
+  );
+  const sessionDates: string[] = [];
+
+  for (const eventGroup of competition.eventGroups) {
+    if (!eventGroup.id || !eventGroup.sessions) {
+      continue;
+    }
+
+    for (const eventSession of eventGroup.sessions) {
+      const iRacingSessions = await getIRacingGroupSessions({
+        leagueId: competition.leagueId,
+        seasonId: competition.seasonId,
+        trackId: eventGroup.iRacingTrackId,
+        fromTime: eventSession.fromTime,
+        toTime: eventSession.toTime,
+      });
+
+      iRacingSessions.forEach((s) => {
+        const iRacingSession = s.data() as IRacingSessionDocument;
+
+        iRacingSession.simsessions.forEach((simsession) => {
+          if (simsession.simsessionName !== "QUALIFY") {
+            return;
+          }
+
+          const formattedLaunchAt = dayjs(
+            iRacingSession.launchAt.toDate()
+          ).format("YYYY-MM-DD HH:mm:ss");
+
+          sessionDates.push(formattedLaunchAt);
+
+          simsession.participants.forEach((participant) => {
+            if (!driverIds.includes(participant.custId)) {
+              return;
+            }
+
+            const avgLapTime = extractAverageLapTime(participant.laps, 3);
+            driverResults[participant.custId][formattedLaunchAt] = avgLapTime;
+          });
+        });
+      });
+    }
+  }
+
+  // Sort sessionDates in descending order
+  sessionDates.sort((a, b) => {
+    return new Date(b).getTime() - new Date(a).getTime();
+  });
+
+  const output = [];
+  drivers.forEach((driver) => {
+    const row = {
+      Driver: driver.firstName + " " + driver.lastName,
+      Id: driver.iRacingId,
+    };
+
+    sessionDates.forEach((date) => {
+      const lapTime = driverResults[driver.iRacingId][date];
+      if (lapTime === undefined) {
+        row[date] = "";
+      } else if (lapTime === null) {
+        row[date] = formatMilliseconds(0);
+      } else {
+        row[date] = formatMilliseconds(lapTime);
+      }
+    });
+
+    output.push(row);
+  });
+
+  const csv = stringify(output, { header: true, delimiter: ";" });
+  return csv;
 }

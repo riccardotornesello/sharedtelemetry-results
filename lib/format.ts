@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 
 export function formatMilliseconds(totalMilliseconds: number): string {
-  const durationObj = dayjs.duration(totalMilliseconds);
+  const durationObj = dayjs.duration(Math.floor(totalMilliseconds));
   return durationObj.format("mm:ss.SSS");
 }
 
