@@ -230,11 +230,11 @@ export async function getCompetitionSessionsCsv(slug: string) {
     return new Date(b).getTime() - new Date(a).getTime();
   });
 
-  const output = [];
+  const output: Record<string, string>[] = [];
   drivers.forEach((driver) => {
-    const row = {
+    const row: Record<string, string> = {
       Driver: driver.firstName + " " + driver.lastName,
-      Id: driver.iRacingId,
+      Id: driver.iRacingId.toString(),
     };
 
     sessionDates.forEach((date) => {
