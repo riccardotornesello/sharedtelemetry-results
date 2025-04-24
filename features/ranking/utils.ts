@@ -114,24 +114,55 @@ export async function getCompetitionBestResults(
     return bestResults;
   }
 
-  for (const eventGroup of competition.eventGroups) {
-    if (!eventGroup.sessions) {
-      continue;
-    }
+  const queryResults = competition.eventGroups.reduce(
+    (acc, eventGroup) => {
+      if (!eventGroup.sessions || !eventGroup.id) {
+        return acc;
+      }
 
-    if (!eventGroup.id) {
+      const eventGroupSessionQueries = eventGroup.sessions.reduce(
+        (acc, eventSession) => {
+          if (!eventSession.id) {
+            return acc;
+          }
+
+          const query = getIRacingBestGroupSessions({
+            leagueId: competition.leagueId,
+            seasonId: competition.seasonId,
+            trackId: eventGroup.iRacingTrackId,
+            fromTime: eventSession.fromTime,
+            toTime: eventSession.toTime,
+            simsessionName: "QUALIFY", // TODO: variable
+          });
+
+          return {
+            ...acc,
+            [eventSession.id]: query,
+          };
+        },
+        {} as Record<string, Promise<Record<number, number>>>
+      );
+
+      return {
+        ...acc,
+        [eventGroup.id]: eventGroupSessionQueries,
+      };
+    },
+    {} as Record<string, Record<string, Promise<Record<number, number>>>>
+  );
+
+  for (const eventGroup of competition.eventGroups) {
+    if (!eventGroup.sessions || !eventGroup.id) {
       continue;
     }
 
     for (const eventSession of eventGroup.sessions) {
-      const sessionResults = await getIRacingBestGroupSessions({
-        leagueId: competition.leagueId,
-        seasonId: competition.seasonId,
-        trackId: eventGroup.iRacingTrackId,
-        fromTime: eventSession.fromTime,
-        toTime: eventSession.toTime,
-        simsessionName: "QUALIFY", // TODO: variable
-      });
+      if (!eventSession.id) {
+        continue;
+      }
+
+      const sessionResults =
+        await queryResults[eventGroup.id]?.[eventSession.id];
 
       for (const custId in sessionResults) {
         if (!bestResults[custId]) {
