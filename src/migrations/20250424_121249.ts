@@ -1,11 +1,11 @@
-import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
+import { MigrateUpArgs, MigrateDownArgs, sql } from "@payloadcms/db-postgres";
 
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-   CREATE UNIQUE INDEX IF NOT EXISTS "competitions_slug_idx" ON "competitions" USING btree ("slug");`)
+   CREATE UNIQUE INDEX IF NOT EXISTS "competitions_slug_idx" ON "competitions" USING btree ("slug");`);
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
-   DROP INDEX IF EXISTS "competitions_slug_idx";`)
+   DROP INDEX IF EXISTS "competitions_slug_idx";`);
 }
