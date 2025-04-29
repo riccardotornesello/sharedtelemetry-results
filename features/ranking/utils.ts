@@ -258,7 +258,7 @@ export async function getCompetitionSessionsCsv(slug: string) {
 
   // Sort sessionDates in descending order
   sessionDates.sort((a, b) => {
-    return new Date(b).getTime() - new Date(a).getTime();
+    return new Date(a).getTime() - new Date(b).getTime();
   });
 
   const output: Record<string, string>[] = [];
