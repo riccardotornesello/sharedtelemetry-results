@@ -19,10 +19,6 @@ export const downloadEndpoint: Endpoint = {
   path: "/:slug/csv",
   method: "get",
   async handler(req) {
-    if (!req.user) {
-      return Response.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
     const slug = req?.routeParams?.slug as string | undefined;
     if (!slug) {
       return Response.json({ message: "Slug is required" }, { status: 400 });
