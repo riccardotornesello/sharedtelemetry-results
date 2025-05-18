@@ -6,9 +6,7 @@ import { getCompetitionRanking } from "@/features/ranking/utils";
 import { getCompetitionBySlug } from "@/features/competitions/queries";
 
 type Props = {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
