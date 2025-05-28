@@ -26,3 +26,17 @@ export async function getCompetitionBySlug(
 
   return result.docs[0];
 }
+
+export async function getCompetitions(): Promise<Competition[]> {
+  const payload = await getPayload({ config });
+
+  const result = await payload.find({
+    collection: "competitions",
+    depth: 3,
+    page: 1,
+    limit: 100,
+    pagination: false,
+  });
+
+  return result.docs;
+}
