@@ -1,12 +1,8 @@
-import { getCompetitions } from "@/features/competitions/queries";
-
 export const metadata = {
   title: "SharedTelemetry Results",
 };
 
 export default async function HomePage() {
-  const competitions = await getCompetitions();
-
   return (
     <main>
       <div className="layout-container flex h-full grow flex-col">
@@ -14,7 +10,7 @@ export default async function HomePage() {
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <p className="tracking-light text-[32px] font-bold leading-tight min-w-72">
-                Welcome to SharedTelemetry Results,
+                Welcome to SharedTelemetry Results
               </p>
             </div>
 
@@ -28,25 +24,25 @@ export default async function HomePage() {
             </p>
 
             <h2 className="text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-              Featured Events
+              Special thanks to:
             </h2>
-
-            {competitions.map((competition) => (
-              <div key={competition.id} className="p-4">
-                <div className="flex items-stretch justify-between gap-4 rounded-lg">
-                  <div className="flex flex-[2_2_0px] flex-col gap-4">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-base font-bold leading-tight">
-                        {competition.name}
-                      </p>
-                    </div>
-                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 flex-row-reverse text-sm font-medium leading-normal w-fit">
-                      <span className="truncate">View Event</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <div className="px-4 pb-3 pt-1">
+              <a
+                href="https://www.simracingleague.it"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="https://www.simracingleague.it/wp-content/uploads/SRL-LOGO-4.svg"
+                  alt="SimRacingLeague Logo"
+                  className="h-8 mb-4"
+                />
+              </a>
+              <p className="text-base font-normal leading-normal pb-3 pt-1">
+                SimRacingLeague.it for believing in the project and supporting
+                its development.
+              </p>
+            </div>
           </div>
         </div>
       </div>
