@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { useField, TextInput } from "@payloadcms/ui";
-import { TextFieldClientComponent } from "payload";
-import styles from "./color-picker.module.css";
+import { useField, TextInput } from "@payloadcms/ui"
+import { TextFieldClientComponent } from "payload"
+import styles from "./color-picker.module.css"
 
 const ColorPicker: TextFieldClientComponent = ({
   field: { label, required = false },
   path,
 }) => {
-  const { value, setValue } = useField<string>({ path });
+  const { value, setValue } = useField<string>({ path })
 
   return (
     <div className={styles.colorPicker}>
@@ -31,7 +31,7 @@ const ColorPicker: TextFieldClientComponent = ({
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ColorPicker;
+export default ColorPicker

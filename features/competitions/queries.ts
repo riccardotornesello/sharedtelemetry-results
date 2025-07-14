@@ -1,15 +1,15 @@
-import { Competition } from "@/payload-types";
-import { getPayload } from "payload";
-import config from "@payload-config";
+import { Competition } from "@/payload-types"
+import { getPayload } from "payload"
+import config from "@payload-config"
 
 export async function getCompetitionBySlug(
   slug: string | null | undefined
 ): Promise<Competition | null> {
   if (!slug) {
-    return null;
+    return null
   }
 
-  const payload = await getPayload({ config });
+  const payload = await getPayload({ config })
 
   const result = await payload.find({
     collection: "competitions",
@@ -22,13 +22,13 @@ export async function getCompetitionBySlug(
         equals: slug,
       },
     },
-  });
+  })
 
-  return result.docs[0];
+  return result.docs[0]
 }
 
 export async function getCompetitions(): Promise<Competition[]> {
-  const payload = await getPayload({ config });
+  const payload = await getPayload({ config })
 
   const result = await payload.find({
     collection: "competitions",
@@ -36,7 +36,7 @@ export async function getCompetitions(): Promise<Competition[]> {
     page: 1,
     limit: 100,
     pagination: false,
-  });
+  })
 
-  return result.docs;
+  return result.docs
 }

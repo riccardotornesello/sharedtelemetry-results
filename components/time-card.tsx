@@ -1,10 +1,10 @@
-import { formatMilliseconds } from "@/lib/format";
-import clsx from "clsx";
+import { formatMilliseconds } from "@/lib/format"
+import clsx from "clsx"
 
 export interface TimeCardProps {
-  time?: number;
-  isOverallBest?: boolean;
-  isPersonalBest?: boolean;
+  time?: number
+  isOverallBest?: boolean
+  isPersonalBest?: boolean
 }
 
 export function TimeCard({
@@ -24,5 +24,5 @@ export function TimeCard({
     >
       {time ? formatMilliseconds(time) : "-"}
     </div>
-  );
+  )
 }

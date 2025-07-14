@@ -1,21 +1,21 @@
-"use client";
+"use client"
 
-import { UIFieldClientComponent } from "payload";
-import { useDocumentInfo } from "@payloadcms/ui";
+import { UIFieldClientComponent } from "payload"
+import { useDocumentInfo } from "@payloadcms/ui"
 
 const VisitCompetitionResultsButton: UIFieldClientComponent = (props) => {
-  const data = useDocumentInfo();
-  const slug = data?.savedDocumentData?.slug;
+  const data = useDocumentInfo()
+  const slug = data?.savedDocumentData?.slug
 
   if (!slug) {
-    return null;
+    return null
   }
 
   return (
     <div>
       <a href={`/competitions/${slug}`}>View results</a>
     </div>
-  );
-};
+  )
+}
 
-export default VisitCompetitionResultsButton;
+export default VisitCompetitionResultsButton

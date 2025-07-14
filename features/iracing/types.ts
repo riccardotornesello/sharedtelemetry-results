@@ -1,33 +1,33 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore"
 
 export interface IRacingSessionDocument {
-  parsed: boolean;
+  parsed: boolean
 
-  leagueId: number;
-  seasonId: number;
-  launchAt: Timestamp;
+  leagueId: number
+  seasonId: number
+  launchAt: Timestamp
 
-  simsessions: IRacingSimSession[];
+  simsessions: IRacingSimSession[]
 }
 
 export interface IRacingSimSession {
-  simsessionNumber: number;
-  simsessionType: number;
-  simsessionName: string;
+  simsessionNumber: number
+  simsessionType: number
+  simsessionName: string
 
-  participants: IRacingParticipant[];
+  participants: IRacingParticipant[]
 }
 
 export interface IRacingParticipant {
-  custId: number;
-  carId: number;
+  custId: number
+  carId: number
 
-  laps: IRacingLap[];
+  laps: IRacingLap[]
 }
 
 export interface IRacingLap {
-  lapEvents: string[];
-  incident: boolean;
-  lapTime: number;
-  lapNumber: number;
+  lapEvents: string[]
+  incident: boolean
+  lapTime: number
+  lapNumber: number
 }

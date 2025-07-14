@@ -1,7 +1,7 @@
-import { Timestamp } from "firebase-admin/firestore";
-import { db } from "@/lib/firebase";
-import { IRacingSessionDocument } from "./types";
-import { extractAverageLapTime } from "./utils";
+import { Timestamp } from "firebase-admin/firestore"
+import { db } from "@/lib/firebase"
+import { IRacingSessionDocument } from "./types"
+import { extractAverageLapTime } from "./utils"
 
 export async function getIRacingGroupSessions({
   leagueId,
@@ -10,26 +10,26 @@ export async function getIRacingGroupSessions({
   fromTime,
   toTime,
 }: {
-  leagueId: number;
-  seasonId: number;
-  trackId?: number | null;
-  fromTime: string;
-  toTime: string;
+  leagueId: number
+  seasonId: number
+  trackId?: number | null
+  fromTime: string
+  toTime: string
 }) {
   let sessionsQuery = db
     .collection("iracing_sessions")
     .where("launchAt", ">=", Timestamp.fromDate(new Date(fromTime)))
     .where("launchAt", "<=", Timestamp.fromDate(new Date(toTime)))
     .where("leagueId", "==", leagueId)
-    .where("seasonId", "==", seasonId);
+    .where("seasonId", "==", seasonId)
 
   if (trackId) {
-    sessionsQuery = sessionsQuery.where("trackId", "==", trackId);
+    sessionsQuery = sessionsQuery.where("trackId", "==", trackId)
   }
 
-  const sessions = await sessionsQuery.get();
+  const sessions = await sessionsQuery.get()
 
-  return sessions;
+  return sessions
 }
 
 export async function getIRacingBestGroupSessions({
@@ -40,12 +40,12 @@ export async function getIRacingBestGroupSessions({
   toTime,
   simsessionName,
 }: {
-  leagueId: number;
-  seasonId: number;
-  trackId?: number | null;
-  fromTime: string;
-  toTime: string;
-  simsessionName: string;
+  leagueId: number
+  seasonId: number
+  trackId?: number | null
+  fromTime: string
+  toTime: string
+  simsessionName: string
 }): Promise<Record<number, number>> {
   const sessions = await getIRacingGroupSessions({
     leagueId,
@@ -53,33 +53,33 @@ export async function getIRacingBestGroupSessions({
     trackId,
     fromTime,
     toTime,
-  });
+  })
 
-  const groupDriverResults: Record<number, number> = {};
+  const groupDriverResults: Record<number, number> = {}
 
   sessions.forEach((s) => {
-    const session = s.data() as IRacingSessionDocument;
+    const session = s.data() as IRacingSessionDocument
 
     for (const simsession of session.simsessions) {
       if (simsession.simsessionName !== simsessionName) {
-        continue;
+        continue
       }
 
       for (const participant of simsession.participants) {
         // TODO: check if the car is allowed
         // TODO: variable stint length
 
-        const avgLapTime = extractAverageLapTime(participant.laps, 3);
+        const avgLapTime = extractAverageLapTime(participant.laps, 3)
         if (
           avgLapTime &&
           (!groupDriverResults[participant.custId] ||
             groupDriverResults[participant.custId] > avgLapTime)
         ) {
-          groupDriverResults[participant.custId] = Math.trunc(avgLapTime);
+          groupDriverResults[participant.custId] = Math.trunc(avgLapTime)
         }
       }
     }
-  });
+  })
 
-  return groupDriverResults;
+  return groupDriverResults
 }

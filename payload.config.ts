@@ -1,32 +1,32 @@
-import sharp from "sharp";
-import { lexicalEditor } from "@payloadcms/richtext-lexical";
-import { sqliteAdapter } from "@payloadcms/db-sqlite";
+import sharp from "sharp"
+import { lexicalEditor } from "@payloadcms/richtext-lexical"
+import { sqliteAdapter } from "@payloadcms/db-sqlite"
 import {
   buildConfig,
   type Field,
   type CollectionConfig,
   Endpoint,
-} from "payload";
-import { postgresAdapter } from "@payloadcms/db-postgres";
-import { deleteCacheByPrefix } from "./lib/redis";
-import { getCompetitionSessionsCsv } from "./features/ranking/utils";
-import dayjs from "dayjs";
-import duration from "dayjs/plugin/duration";
+} from "payload"
+import { postgresAdapter } from "@payloadcms/db-postgres"
+import { deleteCacheByPrefix } from "./lib/redis"
+import { getCompetitionSessionsCsv } from "./features/ranking/utils"
+import dayjs from "dayjs"
+import duration from "dayjs/plugin/duration"
 
-dayjs.extend(duration);
+dayjs.extend(duration)
 
 export const downloadEndpoint: Endpoint = {
   path: "/:slug/csv",
   method: "get",
   async handler(req) {
-    const slug = req?.routeParams?.slug as string | undefined;
+    const slug = req?.routeParams?.slug as string | undefined
     if (!slug) {
-      return Response.json({ message: "Slug is required" }, { status: 400 });
+      return Response.json({ message: "Slug is required" }, { status: 400 })
     }
 
-    const csv = await getCompetitionSessionsCsv(slug);
+    const csv = await getCompetitionSessionsCsv(slug)
     if (!csv) {
-      return Response.json({ message: "No data available" }, { status: 404 });
+      return Response.json({ message: "No data available" }, { status: 404 })
     }
 
     return new Response(csv.toString(), {
@@ -34,9 +34,9 @@ export const downloadEndpoint: Endpoint = {
         "Content-Type": "text/csv",
         "Content-Disposition": `attachment; filename="competition-${slug}.csv"`,
       },
-    });
+    })
   },
-};
+}
 
 const Drivers: Field = {
   name: "drivers",
@@ -63,7 +63,7 @@ const Drivers: Field = {
       ],
     },
   ],
-};
+}
 
 const Crews: Field = {
   name: "crews",
@@ -91,7 +91,7 @@ const Crews: Field = {
     },
     Drivers,
   ],
-};
+}
 
 const Teams: Field = {
   name: "teams",
@@ -114,7 +114,7 @@ const Teams: Field = {
     },
     Crews,
   ],
-};
+}
 
 const Classes: Field = {
   name: "classes",
@@ -142,7 +142,7 @@ const Classes: Field = {
       ],
     },
   ],
-};
+}
 
 const EventSesions: Field = {
   name: "sessions",
@@ -174,7 +174,7 @@ const EventSesions: Field = {
       ],
     },
   ],
-};
+}
 
 const EventGroups: Field = {
   name: "eventGroups",
@@ -196,7 +196,7 @@ const EventGroups: Field = {
     },
     EventSesions,
   ],
-};
+}
 
 const CompetitionCollection: CollectionConfig = {
   slug: "competitions",
@@ -250,7 +250,7 @@ const CompetitionCollection: CollectionConfig = {
           Field: "@/features/admin/components/download-csv-button",
         },
         condition: (data) => {
-          return data && data.slug;
+          return data && data.slug
         },
       },
     },
@@ -263,7 +263,7 @@ const CompetitionCollection: CollectionConfig = {
           Field: "@/features/admin/components/visit-competition-results-button",
         },
         condition: (data) => {
-          return data && data.slug;
+          return data && data.slug
         },
       },
     },
@@ -284,14 +284,14 @@ const CompetitionCollection: CollectionConfig = {
   hooks: {
     afterChange: [
       async () => {
-        await deleteCacheByPrefix("competitionRanking:");
+        await deleteCacheByPrefix("competitionRanking:")
       },
     ],
   },
-};
+}
 
 function getDbAdapter() {
-  const databaseUrL = process.env.POSTGRES_URL;
+  const databaseUrL = process.env.POSTGRES_URL
 
   if (!databaseUrL) {
     // For local development, use SQLite
@@ -300,13 +300,13 @@ function getDbAdapter() {
         url: "file:local.db",
         authToken: "your-auth-token",
       },
-    });
+    })
   } else {
     return postgresAdapter({
       pool: {
         connectionString: databaseUrL,
       },
-    });
+    })
   }
 }
 
@@ -317,4 +317,4 @@ export default buildConfig({
   db: getDbAdapter(),
   sharp,
   endpoints: [downloadEndpoint],
-});
+})

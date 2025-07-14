@@ -1,48 +1,48 @@
-import dayjs from "dayjs";
-import { Competition } from "@/payload-types";
-import { RankingItem } from "../types";
-import { formatDate } from "@/lib/format";
-import { TimeCard } from "@/components/time-card";
+import dayjs from "dayjs"
+import { Competition } from "@/payload-types"
+import { RankingItem } from "../types"
+import { formatDate } from "@/lib/format"
+import { TimeCard } from "@/components/time-card"
 
 export interface RankingTableProps {
-  competition: Competition;
-  ranking: RankingItem[];
+  competition: Competition
+  ranking: RankingItem[]
 }
 
-type CompetitionTeam = NonNullable<Competition["teams"]>[number];
-type CompetitionCrew = NonNullable<CompetitionTeam["crews"]>[number];
-type CompetitionDriver = NonNullable<CompetitionCrew["drivers"]>[number];
-type EventGroup = NonNullable<Competition["eventGroups"]>[number];
+type CompetitionTeam = NonNullable<Competition["teams"]>[number]
+type CompetitionCrew = NonNullable<CompetitionTeam["crews"]>[number]
+type CompetitionDriver = NonNullable<CompetitionCrew["drivers"]>[number]
+type EventGroup = NonNullable<Competition["eventGroups"]>[number]
 
 interface RankingRowProps {
-  rankingItem: RankingItem;
-  driver: CompetitionDriver;
-  team: NonNullable<Competition["teams"]>[number];
-  eventGroups: EventGroup[];
-  overallBestTimesPerEventGroup: Record<string, number>;
+  rankingItem: RankingItem
+  driver: CompetitionDriver
+  team: NonNullable<Competition["teams"]>[number]
+  eventGroups: EventGroup[]
+  overallBestTimesPerEventGroup: Record<string, number>
 }
 
 export function RankingTable({ competition, ranking }: RankingTableProps) {
   if (!competition || !ranking || ranking.length === 0) {
-    return <div>No ranking available</div>;
+    return <div>No ranking available</div>
   }
 
-  const driversMap: Record<number, CompetitionDriver> = {};
-  const driversTeamsMap: Record<number, CompetitionTeam> = {};
-  const overallBestTimesPerEventGroup: Record<string, number> = {};
+  const driversMap: Record<number, CompetitionDriver> = {}
+  const driversTeamsMap: Record<number, CompetitionTeam> = {}
+  const overallBestTimesPerEventGroup: Record<string, number> = {}
 
-  (competition.teams || []).forEach((team) => {
-    (team.crews || []).forEach((crew) => {
-      (crew.drivers || []).forEach((driver) => {
+  ;(competition.teams || []).forEach((team) => {
+    ;(team.crews || []).forEach((crew) => {
+      ;(crew.drivers || []).forEach((driver) => {
         if (!driver.iRacingId) {
-          return;
+          return
         }
 
-        driversMap[driver.iRacingId] = driver;
-        driversTeamsMap[driver.iRacingId] = team;
-      });
-    });
-  });
+        driversMap[driver.iRacingId] = driver
+        driversTeamsMap[driver.iRacingId] = team
+      })
+    })
+  })
 
   ranking.forEach((driverRanking) => {
     Object.entries(driverRanking.results).forEach(([eventGroupId, results]) => {
@@ -52,11 +52,11 @@ export function RankingTable({ competition, ranking }: RankingTableProps) {
           (!overallBestTimesPerEventGroup[eventGroupId] ||
             result < overallBestTimesPerEventGroup[eventGroupId])
         ) {
-          overallBestTimesPerEventGroup[eventGroupId] = result;
+          overallBestTimesPerEventGroup[eventGroupId] = result
         }
-      });
-    });
-  });
+      })
+    })
+  })
 
   return (
     <table className="min-w-full table-auto text-left text-sm text-gray-400 rtl:text-right">
@@ -107,7 +107,7 @@ export function RankingTable({ competition, ranking }: RankingTableProps) {
         ))}
       </tbody>
     </table>
-  );
+  )
 }
 
 function RankingRow({
@@ -118,7 +118,7 @@ function RankingRow({
   overallBestTimesPerEventGroup,
 }: RankingRowProps) {
   if (!rankingItem) {
-    return null;
+    return null
   }
 
   return (
@@ -152,13 +152,13 @@ function RankingRow({
 
       {eventGroups &&
         eventGroups.map((event) => {
-          const eventResults = rankingItem.results[event.id || "0"];
+          const eventResults = rankingItem.results[event.id || "0"]
 
           return (event.sessions || []).map((session, i) => {
-            const sessionResult = eventResults?.[session.id || "0"] || 0;
+            const sessionResult = eventResults?.[session.id || "0"] || 0
             const personalBest = Math.min(
               ...Object.values(eventResults || {}).filter((v) => v > 0)
-            );
+            )
 
             return (
               <td key={i} className="px-2 py-1">
@@ -171,9 +171,9 @@ function RankingRow({
                   }
                 />
               </td>
-            );
-          });
+            )
+          })
         })}
     </tr>
-  );
+  )
 }

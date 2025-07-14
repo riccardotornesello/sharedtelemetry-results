@@ -1,32 +1,32 @@
-"use server";
+"use server"
 
-import type { Metadata } from "next";
-import { RankingTable } from "@/features/ranking/components/ranking-table";
-import { getCompetitionRanking } from "@/features/ranking/utils";
-import { getCompetitionBySlug } from "@/features/competitions/queries";
+import type { Metadata } from "next"
+import { RankingTable } from "@/features/ranking/components/ranking-table"
+import { getCompetitionRanking } from "@/features/ranking/utils"
+import { getCompetitionBySlug } from "@/features/competitions/queries"
 
 type Props = {
-  params: Promise<{ slug: string }>;
-};
+  params: Promise<{ slug: string }>
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const slug = (await params).slug;
+  const slug = (await params).slug
 
-  const competition = await getCompetitionBySlug(slug);
+  const competition = await getCompetitionBySlug(slug)
 
   return {
     title: competition?.name
       ? `${competition.name} | SharedTelemetry Results`
       : "SharedTelemetry Results",
-  };
+  }
 }
 
 export default async function CompetitionResultsPage({ params }: Props) {
-  const slug = (await params).slug;
-  const competitionRanking = await getCompetitionRanking(slug);
+  const slug = (await params).slug
+  const competitionRanking = await getCompetitionRanking(slug)
 
   if (!competitionRanking) {
-    return <div>No ranking available</div>;
+    return <div>No ranking available</div>
   }
 
   return (
@@ -42,5 +42,5 @@ export default async function CompetitionResultsPage({ params }: Props) {
         />
       </div>
     </main>
-  );
+  )
 }

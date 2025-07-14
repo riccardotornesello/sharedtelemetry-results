@@ -1,34 +1,34 @@
-"use server";
+"use server"
 
-import { getCompetitionBySlug } from "../competitions/queries";
-import { Competition } from "@/payload-types";
+import { getCompetitionBySlug } from "../competitions/queries"
+import { Competition } from "@/payload-types"
 import {
   getIRacingBestGroupSessions,
   getIRacingGroupSessions,
-} from "../iracing/queries";
-import { RankingItem } from "./types";
-import { getCache, setCache } from "@/lib/redis";
-import dayjs from "dayjs";
-import { IRacingSessionDocument } from "../iracing/types";
-import { extractAverageLapTime } from "../iracing/utils";
-import { stringify } from "csv-stringify/sync";
-import { formatMilliseconds } from "@/lib/format";
+} from "../iracing/queries"
+import { RankingItem } from "./types"
+import { getCache, setCache } from "@/lib/redis"
+import dayjs from "dayjs"
+import { IRacingSessionDocument } from "../iracing/types"
+import { extractAverageLapTime } from "../iracing/utils"
+import { stringify } from "csv-stringify/sync"
+import { formatMilliseconds } from "@/lib/format"
 
 export async function getCompetitionRanking(slug: string) {
-  const cacheKey = `competitionRanking:${slug}`;
-  const cache = await getCache(cacheKey);
+  const cacheKey = `competitionRanking:${slug}`
+  const cache = await getCache(cacheKey)
   if (cache) {
-    const parsedCache = JSON.parse(cache);
-    return parsedCache;
+    const parsedCache = JSON.parse(cache)
+    return parsedCache
   }
 
-  const competition = await getCompetitionBySlug(slug);
+  const competition = await getCompetitionBySlug(slug)
 
   if (!competition) {
-    return null;
+    return null
   }
 
-  const bestResults = await getCompetitionBestResults(competition);
+  const bestResults = await getCompetitionBestResults(competition)
 
   const driverIds = (competition.teams || [])
     .map((team) =>
@@ -37,27 +37,27 @@ export async function getCompetitionRanking(slug: string) {
       )
     )
     .flat(3)
-    .filter((v) => v !== undefined && v !== null);
+    .filter((v) => v !== undefined && v !== null)
 
-  const driversRanking: RankingItem[] = [];
+  const driversRanking: RankingItem[] = []
 
   for (const custId of driverIds) {
-    let totalMs = 0;
-    let isValid = true;
+    let totalMs = 0
+    let isValid = true
 
-    (competition.eventGroups || []).forEach((eventGroup) => {
+    ;(competition.eventGroups || []).forEach((eventGroup) => {
       const eventGroupResults: Record<string, number> | undefined =
-        bestResults[custId]?.[eventGroup.id || "0"];
+        bestResults[custId]?.[eventGroup.id || "0"]
 
       if (!eventGroupResults) {
-        isValid = false;
+        isValid = false
       } else {
         const bestGroupResult = Math.min(
           ...Object.values(eventGroupResults || {})
-        );
-        totalMs += bestGroupResult;
+        )
+        totalMs += bestGroupResult
       }
-    });
+    })
 
     driversRanking.push({
       position: 0,
@@ -65,38 +65,38 @@ export async function getCompetitionRanking(slug: string) {
       sum: totalMs,
       isValid,
       results: bestResults[custId] || {},
-    });
+    })
   }
 
   // Sort the driversRanking. Primary sort by isValid, secondary by sum
   driversRanking.sort((a, b) => {
     if (a.isValid && !b.isValid) {
-      return -1;
+      return -1
     }
     if (!a.isValid && b.isValid) {
-      return 1;
+      return 1
     }
     if (a.sum === 0) {
-      return 1;
+      return 1
     }
     if (b.sum === 0) {
-      return -1;
+      return -1
     }
-    return a.sum - b.sum;
-  });
+    return a.sum - b.sum
+  })
 
   // Add the position to the driversRanking
   driversRanking.forEach((item, index) => {
-    item.position = index + 1;
-  });
+    item.position = index + 1
+  })
 
-  const output = { driversRanking, competition };
+  const output = { driversRanking, competition }
 
   // Cache the output
-  const cacheExpiration = 10 * 60; // 10 minutes
-  await setCache(cacheKey, JSON.stringify(output), cacheExpiration);
+  const cacheExpiration = 10 * 60 // 10 minutes
+  await setCache(cacheKey, JSON.stringify(output), cacheExpiration)
 
-  return output;
+  return output
 }
 
 /**
@@ -105,25 +105,22 @@ export async function getCompetitionRanking(slug: string) {
 export async function getCompetitionBestResults(
   competition: Competition
 ): Promise<Record<number, Record<string, Record<string, number>>>> {
-  const bestResults: Record<
-    number,
-    Record<string, Record<string, number>>
-  > = {}; //  Customer ID, Group ID, Group Session ID, average ms
+  const bestResults: Record<number, Record<string, Record<string, number>>> = {} //  Customer ID, Group ID, Group Session ID, average ms
 
   if (!competition.eventGroups) {
-    return bestResults;
+    return bestResults
   }
 
   const queryResults = competition.eventGroups.reduce(
     (acc, eventGroup) => {
       if (!eventGroup.sessions || !eventGroup.id) {
-        return acc;
+        return acc
       }
 
       const eventGroupSessionQueries = eventGroup.sessions.reduce(
         (acc, eventSession) => {
           if (!eventSession.id) {
-            return acc;
+            return acc
           }
 
           const query = getIRacingBestGroupSessions({
@@ -133,64 +130,64 @@ export async function getCompetitionBestResults(
             fromTime: eventSession.fromTime,
             toTime: eventSession.toTime,
             simsessionName: "QUALIFY", // TODO: variable
-          });
+          })
 
           return {
             ...acc,
             [eventSession.id]: query,
-          };
+          }
         },
         {} as Record<string, Promise<Record<number, number>>>
-      );
+      )
 
       return {
         ...acc,
         [eventGroup.id]: eventGroupSessionQueries,
-      };
+      }
     },
     {} as Record<string, Record<string, Promise<Record<number, number>>>>
-  );
+  )
 
   for (const eventGroup of competition.eventGroups) {
     if (!eventGroup.sessions || !eventGroup.id) {
-      continue;
+      continue
     }
 
     for (const eventSession of eventGroup.sessions) {
       if (!eventSession.id) {
-        continue;
+        continue
       }
 
       const sessionResults =
-        await queryResults[eventGroup.id]?.[eventSession.id];
+        await queryResults[eventGroup.id]?.[eventSession.id]
 
       for (const custId in sessionResults) {
         if (!bestResults[custId]) {
-          bestResults[custId] = {};
+          bestResults[custId] = {}
         }
 
         if (!bestResults[custId][eventGroup.id]) {
-          bestResults[custId][eventGroup.id] = {};
+          bestResults[custId][eventGroup.id] = {}
         }
 
         if (!eventSession.id) {
-          continue;
+          continue
         }
 
         bestResults[custId][eventGroup.id][eventSession.id] =
-          sessionResults[custId];
+          sessionResults[custId]
       }
     }
   }
 
-  return bestResults;
+  return bestResults
 }
 
 export async function getCompetitionSessionsCsv(slug: string) {
-  const competition = await getCompetitionBySlug(slug);
+  const competition = await getCompetitionBySlug(slug)
 
   if (!competition || !competition.eventGroups) {
-    return null;
+    return null
   }
 
   const drivers = (competition.teams || [])
@@ -200,24 +197,24 @@ export async function getCompetitionSessionsCsv(slug: string) {
       )
     )
     .flat(3)
-    .filter((v) => v !== undefined && v !== null);
-  const driverIds = drivers.map((driver) => driver.iRacingId);
+    .filter((v) => v !== undefined && v !== null)
+  const driverIds = drivers.map((driver) => driver.iRacingId)
 
   const driverResults: Record<
     number,
     Record<string, number | null>
   > = drivers.reduce(
     (acc, driver) => {
-      acc[driver.iRacingId] = {};
-      return acc;
+      acc[driver.iRacingId] = {}
+      return acc
     },
     {} as Record<number, Record<string, number>>
-  );
-  const sessionDates: string[] = [];
+  )
+  const sessionDates: string[] = []
 
   for (const eventGroup of competition.eventGroups) {
     if (!eventGroup.id || !eventGroup.sessions) {
-      continue;
+      continue
     }
 
     for (const eventSession of eventGroup.sessions) {
@@ -227,61 +224,61 @@ export async function getCompetitionSessionsCsv(slug: string) {
         trackId: eventGroup.iRacingTrackId,
         fromTime: eventSession.fromTime,
         toTime: eventSession.toTime,
-      });
+      })
 
       iRacingSessions.forEach((s) => {
-        const iRacingSession = s.data() as IRacingSessionDocument;
+        const iRacingSession = s.data() as IRacingSessionDocument
 
         iRacingSession.simsessions.forEach((simsession) => {
           if (simsession.simsessionName !== "QUALIFY") {
-            return;
+            return
           }
 
           const formattedLaunchAt = dayjs(
             iRacingSession.launchAt.toDate()
-          ).format("YYYY-MM-DD HH:mm:ss");
+          ).format("YYYY-MM-DD HH:mm:ss")
 
-          sessionDates.push(formattedLaunchAt);
+          sessionDates.push(formattedLaunchAt)
 
           simsession.participants.forEach((participant) => {
             if (!driverIds.includes(participant.custId)) {
-              return;
+              return
             }
 
-            const avgLapTime = extractAverageLapTime(participant.laps, 3);
-            driverResults[participant.custId][formattedLaunchAt] = avgLapTime;
-          });
-        });
-      });
+            const avgLapTime = extractAverageLapTime(participant.laps, 3)
+            driverResults[participant.custId][formattedLaunchAt] = avgLapTime
+          })
+        })
+      })
     }
   }
 
   // Sort sessionDates in descending order
   sessionDates.sort((a, b) => {
-    return new Date(a).getTime() - new Date(b).getTime();
-  });
+    return new Date(a).getTime() - new Date(b).getTime()
+  })
 
-  const output: Record<string, string>[] = [];
+  const output: Record<string, string>[] = []
   drivers.forEach((driver) => {
     const row: Record<string, string> = {
       Driver: driver.firstName + " " + driver.lastName,
       Id: driver.iRacingId.toString(),
-    };
+    }
 
     sessionDates.forEach((date) => {
-      const lapTime = driverResults[driver.iRacingId][date];
+      const lapTime = driverResults[driver.iRacingId][date]
       if (lapTime === undefined) {
-        row[date] = "";
+        row[date] = ""
       } else if (lapTime === null) {
-        row[date] = formatMilliseconds(0);
+        row[date] = formatMilliseconds(0)
       } else {
-        row[date] = formatMilliseconds(lapTime);
+        row[date] = formatMilliseconds(lapTime)
       }
-    });
+    })
 
-    output.push(row);
-  });
+    output.push(row)
+  })
 
-  const csv = stringify(output, { header: true, delimiter: ";" });
-  return csv;
+  const csv = stringify(output, { header: true, delimiter: ";" })
+  return csv
 }

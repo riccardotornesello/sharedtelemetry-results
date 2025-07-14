@@ -1,6 +1,6 @@
 export const metadata = {
   title: "SharedTelemetry Results",
-};
+}
 
 export default async function HomePage() {
   return (
@@ -47,5 +47,5 @@ export default async function HomePage() {
         </div>
       </div>
     </main>
-  );
+  )
 }

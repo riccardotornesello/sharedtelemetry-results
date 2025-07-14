@@ -1,7 +1,7 @@
 export interface CellWithPictureProps {
-  picture?: string;
-  alt?: string;
-  children: React.ReactNode;
+  picture?: string
+  alt?: string
+  children: React.ReactNode
 }
 
 export function CellWithPicture({
@@ -21,5 +21,5 @@ export function CellWithPicture({
 
       {children}
     </div>
-  );
+  )
 }

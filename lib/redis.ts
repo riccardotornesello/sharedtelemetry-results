@@ -1,27 +1,27 @@
-"use server";
+"use server"
 
-import Redis from "ioredis";
+import Redis from "ioredis"
 
 export async function getRedisClient() {
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = process.env.REDIS_URL
 
   if (!redisUrl) {
-    console.log("REDIS_URL is not set");
-    return null;
+    console.log("REDIS_URL is not set")
+    return null
   } else {
-    console.log("Connecting to Redis");
-    return new Redis(redisUrl);
+    console.log("Connecting to Redis")
+    return new Redis(redisUrl)
   }
 }
 
-const redisClient = await getRedisClient();
+const redisClient = await getRedisClient()
 
 export async function getCache(key: string) {
   if (!redisClient) {
-    return null;
+    return null
   }
 
-  return redisClient.get(key);
+  return redisClient.get(key)
 }
 
 export async function setCache(
@@ -30,32 +30,32 @@ export async function setCache(
   expiration?: number
 ) {
   if (!redisClient) {
-    return null;
+    return null
   }
 
   if (expiration) {
-    return redisClient.set(key, value, "EX", expiration);
+    return redisClient.set(key, value, "EX", expiration)
   } else {
-    return redisClient.set(key, value);
+    return redisClient.set(key, value)
   }
 }
 
 export async function deleteCache(key: string) {
   if (!redisClient) {
-    return null;
+    return null
   }
-  return redisClient.del(key);
+  return redisClient.del(key)
 }
 
 export async function deleteCacheByPrefix(prefix: string) {
   if (!redisClient) {
-    return null;
+    return null
   }
 
   return redisClient.keys(`${prefix}*`).then((keys) => {
     if (keys.length > 0) {
-      return redisClient.del(keys);
+      return redisClient.del(keys)
     }
-    return null;
-  });
+    return null
+  })
 }
