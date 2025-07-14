@@ -1,5 +1,7 @@
 # SharedTelemetry Results
 
+<img src="doc/logo.png" width="300" alt="Shared Telemetry logo" />
+
 [![Production Site](https://img.shields.io/badge/live-site-green?style=flat-square)](https://results.sharedtelemetry.com)
 
 **SharedTelemetry Results** is a real-time race results platform built with [Next.js](https://nextjs.org/) and powered by the [Payload CMS](https://payloadcms.com/), designed to handle multi-session qualifications and deliver live data updates during competitive sim racing events.
@@ -82,6 +84,13 @@ Future improvements are planned, including:
 - Customizable championship rules and logic
 
 However, this is **not a high-priority project** at the moment, and development will progress **slowly and as needed**.
+
+## 📝 Next steps
+
+- Linting, formatting and testing setup
+- Pipelines and git hooks for code quality
+- Local environment setup documentation
+- Storybook
 
 ## 🤝 Contributing
 
