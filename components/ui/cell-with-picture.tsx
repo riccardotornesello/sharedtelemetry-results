@@ -1,6 +1,9 @@
+import { cn } from "@/lib/utils"
+
 export interface CellWithPictureProps {
   picture?: string
   alt?: string
+  className?: string
   children: React.ReactNode
 }
 
@@ -8,9 +11,10 @@ export function CellWithPicture({
   picture,
   alt,
   children,
+  className,
 }: CellWithPictureProps) {
   return (
-    <div className="flex items-center space-x-2">
+    <div className={cn("flex items-center space-x-2", className)}>
       {picture && (
         <img
           src={picture}

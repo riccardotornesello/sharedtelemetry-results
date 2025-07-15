@@ -1,8 +1,7 @@
-import dayjs from "dayjs"
 import { Competition } from "@/payload-types"
 import { RankingItem } from "../types"
 import { formatDate } from "@/lib/format"
-import { TimeCard } from "@/components/time-card"
+import { TimeCard } from "@/components/ui/time-card"
 
 export interface RankingTableProps {
   competition: Competition
@@ -164,10 +163,13 @@ function RankingRow({
               <td key={i} className="px-2 py-1">
                 <TimeCard
                   time={sessionResult}
-                  isPersonalBest={sessionResult === personalBest}
-                  isOverallBest={
-                    sessionResult ===
-                    overallBestTimesPerEventGroup[event.id || "0"]
+                  variant={
+                    sessionResult === personalBest
+                      ? "personalBest"
+                      : sessionResult ===
+                          overallBestTimesPerEventGroup[event.id || "0"]
+                        ? "overallBest"
+                        : undefined
                   }
                 />
               </td>

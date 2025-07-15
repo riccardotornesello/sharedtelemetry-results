@@ -21,6 +21,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "add": "^2.0.6",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-stringify": "^6.5.2",
     "dayjs": "^1.11.13",
@@ -32,6 +33,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.34.1",
+    "tailwind-merge": "^3.3.1",
     "yarn": "^1.22.22"
   },
   "devDependencies": {
