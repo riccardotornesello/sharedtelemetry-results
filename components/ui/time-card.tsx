@@ -12,7 +12,7 @@ const timeCardVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gray-800 text-gray-200",
+        transparent: "",
         overallBest: "bg-purple-600 text-purple-200",
         personalBest: "bg-green-600 text-green-200",
       },
@@ -24,7 +24,7 @@ const timeCardVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "transparent",
       size: "md",
     },
   }
