@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite"
 import { RankingRow } from "@/features/ranking/components/ranking-row"
-import { rankingItem, team } from "./example-data"
+import { driver, rankingItem, team } from "./example-data"
 
 const meta = {
   title: "Ranking/RankingRow",
@@ -18,6 +18,9 @@ type Story = StoryObj<typeof meta>
 export const Example: Story = {
   args: {
     rankingItem: rankingItem,
+    driver: driver,
     team: team,
+    eventGroups: [],
+    overallBestTimesPerEventGroup: {},
   },
 }

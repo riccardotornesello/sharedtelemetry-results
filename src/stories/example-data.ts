@@ -1,3 +1,9 @@
+export const driver = {
+  firstName: "Name",
+  lastName: "Surname",
+  iRacingId: 1234,
+}
+
 export const team = {
   name: "Example Team",
 }
