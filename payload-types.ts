@@ -68,6 +68,7 @@ export interface Config {
   blocks: {}
   collections: {
     competitions: Competition
+    "payload-kv": PayloadKv
     users: User
     "payload-locked-documents": PayloadLockedDocument
     "payload-preferences": PayloadPreference
@@ -76,6 +77,7 @@ export interface Config {
   collectionsJoins: {}
   collectionsSelect: {
     competitions: CompetitionsSelect<false> | CompetitionsSelect<true>
+    "payload-kv": PayloadKvSelect<false> | PayloadKvSelect<true>
     users: UsersSelect<false> | UsersSelect<true>
     "payload-locked-documents":
       | PayloadLockedDocumentsSelect<false>
@@ -90,6 +92,7 @@ export interface Config {
   db: {
     defaultIDType: number
   }
+  fallbackLocale: null
   globals: {}
   globalsSelect: {}
   locale: null
@@ -179,6 +182,23 @@ export interface Competition {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: number
+  key: string
+  data:
+    | {
+        [k: string]: unknown
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -192,6 +212,13 @@ export interface User {
   hash?: string | null
   loginAttempts?: number | null
   lockUntil?: string | null
+  sessions?:
+    | {
+        id: string
+        createdAt?: string | null
+        expiresAt: string
+      }[]
+    | null
   password?: string | null
 }
 /**
@@ -310,6 +337,14 @@ export interface CompetitionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T
+  data?: T
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -322,6 +357,13 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T
   loginAttempts?: T
   lockUntil?: T
+  sessions?:
+    | T
+    | {
+        id?: T
+        createdAt?: T
+        expiresAt?: T
+      }
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -1,6 +1,7 @@
 import { default as default_73a0a251edd31ef220e582607295f166 } from "@/features/admin/components/color-picker"
 import { default as default_0d642dc4f86d9d6b7a484b27d1af76da } from "@/features/admin/components/download-csv-button"
 import { default as default_79b2a29a3ca3ae48c09d6be698772ffa } from "@/features/admin/components/visit-competition-results-button"
+import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from "@payloadcms/ui/rsc"
 
 export const importMap = {
   "@/features/admin/components/color-picker#default":
@@ -9,4 +10,6 @@ export const importMap = {
     default_0d642dc4f86d9d6b7a484b27d1af76da,
   "@/features/admin/components/visit-competition-results-button#default":
     default_79b2a29a3ca3ae48c09d6be698772ffa,
+  "@payloadcms/ui/rsc#CollectionCards":
+    CollectionCards_ab83ff7e88da8d3530831f296ec4756a,
 }
