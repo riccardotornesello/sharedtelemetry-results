@@ -8,7 +8,6 @@ import {
   Endpoint,
 } from "payload"
 import { postgresAdapter } from "@payloadcms/db-postgres"
-import { deleteCacheByPrefix } from "./lib/redis"
 import { getCompetitionSessionsCsv } from "./features/ranking/utils"
 import dayjs from "dayjs"
 import duration from "dayjs/plugin/duration"
@@ -269,9 +268,6 @@ const CompetitionCollection: CollectionConfig = {
     },
   ],
   admin: {
-    components: {
-      beforeListTable: ["@/features/admin/components/cache-clear-button"],
-    },
     defaultColumns: [
       "name",
       "slug",
@@ -279,13 +275,6 @@ const CompetitionCollection: CollectionConfig = {
       "seasonId",
       "createdAt",
       "updatedAt",
-    ],
-  },
-  hooks: {
-    afterChange: [
-      async () => {
-        await deleteCacheByPrefix("competitionRanking:")
-      },
     ],
   },
 }

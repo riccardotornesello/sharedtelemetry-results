@@ -16,8 +16,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: competition?.name
-      ? `${competition.name} | SharedTelemetry Results`
-      : "SharedTelemetry Results",
+      ? `${competition.name} | ShareTelemetry Results`
+      : "ShareTelemetry Results",
   }
 }
 
