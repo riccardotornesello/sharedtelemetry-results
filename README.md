@@ -1,39 +1,50 @@
-# SharedTelemetry Results
+# ShareTelemetry Results
 
-<img src="doc/logo.png" width="300" alt="Shared Telemetry logo" />
+<img src="doc/logo.png" width="300" alt="Share Telemetry logo" />
 
-[![Production Site](https://img.shields.io/badge/live-site-green?style=flat-square)](https://results.sharedtelemetry.com)
+[![Production Site](https://img.shields.io/badge/live-site-green?style=flat-square)](https://results.sharetelemetry.com)
 
-**SharedTelemetry Results** is a real-time race results platform built with [Next.js](https://nextjs.org/) and powered by the [Payload CMS](https://payloadcms.com/), designed to handle multi-session qualifications and deliver live data updates during competitive sim racing events.
+**ShareTelemetry Results** is a real-time race results platform built with [Next.js](https://nextjs.org/) and powered by the [Payload CMS](https://payloadcms.com/), designed to handle multi-session qualifications and deliver live data updates during competitive sim racing events.
 
-> 🌐 Live site: [results.sharedtelemetry.com](https://results.sharedtelemetry.com)
+> 🌐 Live site: [results.sharetelemetry.com](https://results.sharetelemetry.com)
 
 ## 🏗️ Architecture overview
 
-The platform combines a modern web frontend, a headless CMS, and multiple data backends to deliver real-time and structured information.
+The platform combines a modern web frontend, a headless CMS, and a MongoDB-based data pipeline to deliver real-time and structured information.
 
 ### 🔹 Frontend
 
 - Built with **Next.js** (React + TypeScript)
 - Deployed on **[Vercel](https://vercel.com/)** for fast and scalable production hosting
+- Connects directly to MongoDB to read processed competition results
+- Displays real-time rankings and lap times based on processed data
 
 ### 🔹 CMS (Content Management System)
 
 - Powered by **Payload CMS**
 - Stores structured data about:
-  - Competitions
-  - Drivers
+  - Competitions metadata (league ID, season ID, event groups)
+  - Teams and drivers information
+  - Competition configuration (classes, time windows)
 - Connected to a **PostgreSQL** database for persistent data storage
 
-### 🔹 Real-Time Data (iRacing Integration)
+### 🔹 Data Pipeline (iRacing Integration)
 
-- Real-time session and lap data from **iRacing** is:
-  - Collected by a dedicated scraper
-  - Stored in a **Firestore** (NoSQL) database for fast access and updates
-- Data ingestion is handled by the companion project:
-  👉 [sharedtelemetry-iracing-scraper](https://github.com/riccardotornesello/sharedtelemetry-iracing-scraper)
-  - Hosted on **Google Cloud**
-  - Pushes live updates to Firestore during active sessions
+The data flows through a multi-stage pipeline:
+
+1. **Data Collection** - The scraper collects raw session and lap data from iRacing:
+   - Companion project: [sharetelemetry-iracing-scraper](https://github.com/riccardotornesello/sharetelemetry-iracing-scraper)
+   - Saves raw data to a **MongoDB** database (`iracing-scraper` database)
+
+2. **Data Processing** - An operator periodically processes the raw data:
+   - Reads from the raw MongoDB database
+   - Calculates best lap times, validates sessions, aggregates results
+   - Saves processed results to another **MongoDB** database (`results-operator` database)
+
+3. **Data Display** - The frontend reads and displays results:
+   - Connects to the processed MongoDB database
+   - Fetches competition results based on competition slug
+   - Renders rankings, lap times, and driver performance
 
 ## ⚙️ Features
 
@@ -46,14 +57,14 @@ The platform combines a modern web frontend, a headless CMS, and multiple data b
 
 ## 📦 Tech Stack
 
-| Layer       | Tech                         |
-| ----------- | ---------------------------- |
-| Frontend    | Next.js (React, TypeScript)  |
-| CMS         | Payload CMS                  |
-| CMS Storage | PostgreSQL                   |
-| Live Data   | Firestore (Google Cloud)     |
-| Scraper     | GoLang scraper hosted on GCP |
-| Deployment  | Vercel (frontend + CMS)      |
+| Layer           | Tech                                          |
+| --------------- | --------------------------------------------- |
+| Frontend        | Next.js (React, TypeScript)                   |
+| CMS             | Payload CMS                                   |
+| CMS Storage     | PostgreSQL                                    |
+| Results Storage | MongoDB (raw + processed databases)           |
+| Scraper         | [sharetelemetry-iracing-scraper](https://github.com/riccardotornesello/sharetelemetry-iracing-scraper) |
+| Deployment      | Vercel (frontend + CMS)                       |
 
 ## 🛠️ Development
 
@@ -61,8 +72,8 @@ To run the project locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/riccardotornesello/sharedtelemetry-results.git
-cd sharedtelemetry-results
+git clone https://github.com/riccardotornesello/sharetelemetry-results.git
+cd sharetelemetry-results
 
 # Install dependencies
 yarn install
@@ -85,12 +96,22 @@ Future improvements are planned, including:
 
 However, this is **not a high-priority project** at the moment, and development will progress **slowly and as needed**.
 
-## 📝 Next steps
+## 📝 Development Setup
 
-- Linting, formatting and testing setup
-- Pipelines and git hooks for code quality
-- Local environment setup documentation
-- Storybook
+The project includes:
+- **Linting**: ESLint configuration for code quality
+- **Formatting**: Prettier for consistent code style
+- **Testing**: Vitest for unit tests
+- **Storybook**: Component documentation and visual testing
+- **Type Safety**: TypeScript for enhanced development experience
+
+Available scripts:
+- `yarn dev` - Start development server
+- `yarn build` - Build for production
+- `yarn lint` - Run ESLint
+- `yarn format` - Format code with Prettier
+- `yarn storybook` - Start Storybook development server
+- `yarn build-storybook` - Build Storybook for production
 
 ## 🤝 Contributing
 

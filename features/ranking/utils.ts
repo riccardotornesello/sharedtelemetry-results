@@ -8,12 +8,16 @@ import { stringify } from "csv-stringify/sync"
 import { formatMilliseconds } from "@/lib/format"
 import dbConnect from "@/lib/mongodb"
 
+// Database and collection names for accessing MongoDB data
 // TODO: move to config
-const RESULTS_DB_NAME = "results-operator"
-const COMPETITIONS_COLLECTION_NAME = "competitions"
-const SCRAPER_DB_NAME = "iracing-scraper"
-const SEASONS_COLLECTION_NAME = "seasons"
+const RESULTS_DB_NAME = "results-operator" // Processed results database
+const COMPETITIONS_COLLECTION_NAME = "competitions" // Processed competition results
+const SCRAPER_DB_NAME = "iracing-scraper" // Raw scraper data database
+const SEASONS_COLLECTION_NAME = "seasons" // Raw season metadata
 
+/**
+ * Interface for season data from the scraper database
+ */
 interface ISeasonData {
   meta: {
     kind: string
@@ -24,6 +28,9 @@ interface ISeasonData {
   }
 }
 
+/**
+ * Interface for competition data from the results operator database
+ */
 interface ICompetitionData {
   competition_id: number
   results: {
@@ -41,14 +48,37 @@ interface ICompetitionData {
   }[]
 }
 
+/**
+ * Retrieves and processes competition ranking data from MongoDB.
+ *
+ * This function orchestrates the entire ranking calculation process:
+ * 1. Fetches competition metadata from Payload CMS
+ * 2. Retrieves processed results from the results-operator database
+ * 3. Retrieves raw session data from the scraper database
+ * 4. Maps sessions to event groups based on track ID and time windows
+ * 5. Calculates best lap times per driver per event group
+ * 6. Generates final rankings with validity checks
+ *
+ * @param slug - The competition slug identifier
+ * @returns Object containing driver rankings and competition data, or null if not found
+ *
+ * @example
+ * ```ts
+ * const data = await getCompetitionRanking("quali-2024-round-1")
+ * if (data) {
+ *   const { driversRanking, competition } = data
+ *   // Use rankings to display results
+ * }
+ * ```
+ */
 export async function getCompetitionRanking(slug: string) {
-  // Get the competition
+  // Get the competition metadata from Payload CMS
   const competition = await getCompetitionBySlug(slug)
   if (!competition) {
     return null
   }
 
-  // Get the sessions list and results from MongoDB
+  // Connect to MongoDB and get results from both databases
   const mongoClient = await dbConnect()
   const resultsDb = mongoClient.db(RESULTS_DB_NAME)
   const competitionsCollection = resultsDb.collection<ICompetitionData>(
@@ -71,7 +101,7 @@ export async function getCompetitionRanking(slug: string) {
     return null
   }
 
-  // Get the list of allowed drivers
+  // Build a list of allowed driver IDs from the competition configuration
   // TODO: validate cars
   const driverIds: number[] = (competition.teams || [])
     .map((team) =>
@@ -82,7 +112,8 @@ export async function getCompetitionRanking(slug: string) {
     .flat(3)
     .filter((v) => v !== undefined && v !== null)
 
-  // Map session IDs to event group and session IDs
+  // Map session IDs to their corresponding event group and session IDs
+  // This allows us to categorize results by which event they belong to
   const sessionGroups = Object.entries(
     seasonData.status.parsed_sessions
   ).reduce(
@@ -104,6 +135,7 @@ export async function getCompetitionRanking(slug: string) {
   )
 
   // Group best results by driver and event session
+  // Structure: driver_id -> event_group_id -> event_session_id -> best_time_ms
   const bestResults = competitionData.results.reduce(
     (acc, result) => {
       const resultDriverId = result.driver_id
@@ -135,6 +167,7 @@ export async function getCompetitionRanking(slug: string) {
         acc[resultDriverId][eventGroupId] = {}
       }
 
+      // Keep only the best (minimum) time for each driver in each event session
       if (
         !acc[resultDriverId][eventGroupId][eventSessionId] ||
         acc[resultDriverId][eventGroupId][eventSessionId] >
@@ -149,6 +182,7 @@ export async function getCompetitionRanking(slug: string) {
     {} as Record<number, Record<string, Record<string, number>>>
   )
 
+  // Build the final rankings array
   const driversRanking: RankingItem[] = []
   for (const custId of driverIds) {
     let totalMs = 0
@@ -158,10 +192,12 @@ export async function getCompetitionRanking(slug: string) {
       console.log("Best Results for 393525:", bestResults[custId])
     }
 
+    // Sum up the best time from each event group
     ;(competition.eventGroups || []).forEach((eventGroup) => {
       const eventGroupResults: Record<number, number> =
         (eventGroup.id && bestResults[custId]?.[eventGroup.id]) || {}
 
+      // If driver has no results for an event group, mark as invalid
       if (Object.keys(eventGroupResults).length === 0) {
         isValid = false
       } else {
@@ -196,7 +232,7 @@ export async function getCompetitionRanking(slug: string) {
     return a.sum - b.sum
   })
 
-  // Add the position to the driversRanking
+  // Assign final positions (1-based ranking)
   driversRanking.forEach((item, index) => {
     item.position = index + 1
   })
@@ -204,6 +240,17 @@ export async function getCompetitionRanking(slug: string) {
   return { driversRanking, competition }
 }
 
+/**
+ * Determines which event group and session a raw session belongs to.
+ *
+ * This function matches sessions from the scraper to configured event groups by:
+ * - Comparing track IDs
+ * - Checking if the launch time falls within the configured time window
+ *
+ * @param session - Raw session data from the scraper
+ * @param eventGroups - Configured event groups from the competition
+ * @returns Object with eventGroupId and eventSessionId, or nulls if no match
+ */
 function getSessionEventGroupId(
   session: any,
   eventGroups: Competition["eventGroups"]
@@ -234,6 +281,23 @@ function getSessionEventGroupId(
   return { eventGroupId: null, eventSessionId: null }
 }
 
+/**
+ * Generates a CSV export of all sessions and driver lap times.
+ *
+ * This creates a matrix with:
+ * - Rows: Each driver
+ * - Columns: Each session (sorted by date)
+ * - Cells: Lap times for that driver in that session
+ *
+ * @param slug - The competition slug identifier
+ * @returns CSV string or null if competition not found
+ *
+ * @example
+ * ```ts
+ * const csv = await getCompetitionSessionsCsv("quali-2024-round-1")
+ * // Download or display the CSV
+ * ```
+ */
 export async function getCompetitionSessionsCsv(slug: string) {
   // Get the competition
   const competition = await getCompetitionBySlug(slug)

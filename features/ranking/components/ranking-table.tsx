@@ -4,8 +4,13 @@ import { formatDate } from "@/lib/format"
 import { TimeCard } from "@/components/time-card"
 import { Fragment } from "react"
 
+/**
+ * Props for the RankingTable component
+ */
 export interface RankingTableProps {
+  /** Competition metadata including event groups and sessions */
   competition: Competition
+  /** Array of driver rankings with their best times */
   ranking: RankingItem[]
 }
 
@@ -14,6 +19,9 @@ type CompetitionCrew = NonNullable<CompetitionTeam["crews"]>[number]
 type CompetitionDriver = NonNullable<CompetitionCrew["drivers"]>[number]
 type EventGroup = NonNullable<Competition["eventGroups"]>[number]
 
+/**
+ * Props for the RankingRow component
+ */
 interface RankingRowProps {
   rankingItem: RankingItem
   driver: CompetitionDriver
@@ -23,6 +31,27 @@ interface RankingRowProps {
   position: number
 }
 
+/**
+ * RankingTable component displays a comprehensive table of competition results.
+ *
+ * The table shows:
+ * - Driver position and information
+ * - Team affiliation
+ * - Total time (sum of best times across all event groups)
+ * - Individual lap times for each session, with visual indicators for:
+ *   - Overall best times (purple)
+ *   - Personal best times (green)
+ *
+ * For multi-class competitions, results are grouped by class with separate rankings.
+ *
+ * @example
+ * ```tsx
+ * <RankingTable
+ *   competition={competitionData}
+ *   ranking={driverRankings}
+ * />
+ * ```
+ */
 export function RankingTable({ competition, ranking }: RankingTableProps) {
   if (!competition || !ranking || ranking.length === 0) {
     return <div>No ranking available</div>
@@ -95,6 +124,13 @@ export function RankingTable({ competition, ranking }: RankingTableProps) {
   )
 }
 
+/**
+ * TableBody component handles rendering of table rows.
+ *
+ * For multi-class competitions, it groups drivers by class and calculates
+ * separate best times per class. For single-class competitions, it shows
+ * a simple list of all drivers with overall best times.
+ */
 function TableBody({
   ranking,
   driversMap,
@@ -207,6 +243,9 @@ function TableBody({
   }
 }
 
+/**
+ * ClassHead component renders a header row for a specific class in multi-class competitions.
+ */
 function ClassHead({
   className,
   competition,
@@ -232,6 +271,16 @@ function ClassHead({
   )
 }
 
+/**
+ * RankingRow component renders a single driver's results row.
+ *
+ * The row includes:
+ * - Position number
+ * - Driver name
+ * - Team name and logo
+ * - Total time
+ * - Individual session times with color coding for best times
+ */
 function RankingRow({
   rankingItem,
   driver,
