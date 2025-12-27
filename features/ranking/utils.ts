@@ -85,7 +85,7 @@ export async function getCompetitionRanking(slug: string) {
     COMPETITIONS_COLLECTION_NAME
   )
   const competitionData = await competitionsCollection.findOne({
-    competition_id: 12345,
+    competition_id: competition.id,
   })
 
   const scraperDb = mongoClient.db(SCRAPER_DB_NAME)
@@ -312,7 +312,7 @@ export async function getCompetitionSessionsCsv(slug: string) {
     COMPETITIONS_COLLECTION_NAME
   )
   const competitionData = await competitionsCollection.findOne({
-    competition_id: 12345,
+    competition_id: competition.id,
   })
 
   const scraperDb = mongoClient.db(SCRAPER_DB_NAME)
