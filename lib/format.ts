@@ -1,4 +1,8 @@
 import dayjs from "dayjs"
+import duration from "dayjs/plugin/duration"
+
+// Extend dayjs with the duration plugin
+dayjs.extend(duration)
 
 /**
  * Formats milliseconds into a readable time string in the format "m:ss.SSS"
