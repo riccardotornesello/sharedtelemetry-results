@@ -57,14 +57,14 @@ The data flows through a multi-stage pipeline:
 
 ## 📦 Tech Stack
 
-| Layer           | Tech                                          |
-| --------------- | --------------------------------------------- |
-| Frontend        | Next.js (React, TypeScript)                   |
-| CMS             | Payload CMS                                   |
-| CMS Storage     | PostgreSQL                                    |
-| Results Storage | MongoDB (raw + processed databases)           |
+| Layer           | Tech                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| Frontend        | Next.js (React, TypeScript)                                                                            |
+| CMS             | Payload CMS                                                                                            |
+| CMS Storage     | PostgreSQL                                                                                             |
+| Results Storage | MongoDB (raw + processed databases)                                                                    |
 | Scraper         | [sharetelemetry-iracing-scraper](https://github.com/riccardotornesello/sharetelemetry-iracing-scraper) |
-| Deployment      | Vercel (frontend + CMS)                       |
+| Deployment      | Vercel (frontend + CMS)                                                                                |
 
 ## 🛠️ Development
 
@@ -99,6 +99,7 @@ However, this is **not a high-priority project** at the moment, and development 
 ## 📝 Development Setup
 
 The project includes:
+
 - **Linting**: ESLint configuration for code quality
 - **Formatting**: Prettier for consistent code style
 - **Testing**: Vitest for unit tests
@@ -106,6 +107,7 @@ The project includes:
 - **Type Safety**: TypeScript for enhanced development experience
 
 Available scripts:
+
 - `yarn dev` - Start development server
 - `yarn build` - Build for production
 - `yarn lint` - Run ESLint
