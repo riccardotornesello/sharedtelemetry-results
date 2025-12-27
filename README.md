@@ -2,11 +2,11 @@
 
 <img src="doc/logo.png" width="300" alt="Share Telemetry logo" />
 
-[![Production Site](https://img.shields.io/badge/live-site-green?style=flat-square)](https://results.sharetelemetry.com)
+[![Production Site](https://img.shields.io/badge/live-site-green?style=flat-square)](https://results.sharedtelemetry.com)
 
 **ShareTelemetry Results** is a real-time race results platform built with [Next.js](https://nextjs.org/) and powered by the [Payload CMS](https://payloadcms.com/), designed to handle multi-session qualifications and deliver live data updates during competitive sim racing events.
 
-> 🌐 Live site: [results.sharetelemetry.com](https://results.sharetelemetry.com)
+> 🌐 Live site: [results.sharedtelemetry.com](https://results.sharedtelemetry.com)
 
 ## 🏗️ Architecture overview
 

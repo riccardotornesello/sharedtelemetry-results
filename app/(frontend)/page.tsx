@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "SharedTelemetry Results",
+  title: "ShareTelemetry Results",
 }
 
 export default async function HomePage() {
@@ -10,12 +10,12 @@ export default async function HomePage() {
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <p className="tracking-light text-[32px] font-bold leading-tight min-w-72">
-                Welcome to SharedTelemetry Results
+                Welcome to ShareTelemetry Results
               </p>
             </div>
 
             <p className="text-base font-normal leading-normal pb-3 pt-1 px-4">
-              SharedTelemetry Results is a real-time results tracker for
+              ShareTelemetry Results is a real-time results tracker for
               simracing events.
             </p>
             <p className="text-base font-normal leading-normal pb-3 pt-1 px-4">

@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "SharedTelemetry Results",
+  title: "ShareTelemetry Results",
 }
 
 export default function RootLayout({
